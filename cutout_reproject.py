@@ -3,10 +3,10 @@
 Usage:
 
     In python script directory:
-    $ python cutout_reproject.py path/masterlist.txt (4400)
+    $ python cutout_reproject.py path/masterlist.txt 4400
 
     In stack files directory:
-    $ python path_to_script/cutout_reproject.py masterlist.txt (4400)
+    $ python path_to_script/cutout_reproject.py masterlist.txt 4400
 
 This script takes masterlist.txt as inlut (which is a list of all the individual stacks from 1ne to 4sw).
 It will find the master_stack_cluster.fits and make a cutout of it, then reproject all individual stacks to the master cutout.
@@ -44,7 +44,7 @@ filepath = listpath
 
 # Make master cutout image
 if os.path.isfile(listpath + 'master_stack_{}_cutout.fits'.format(clustername)):
-    print('Master Stack Cutout already exist.')
+    print('Master Stack Cutout already exist.\n')
 else:
     cutout_reproject_fxs.master_cutout(path=listpath, filename='master_stack_{}.fits'.format(clustername), np=np)
 
@@ -56,6 +56,6 @@ with open(listpathname) as f:
         if os.path.isfile('cutout_' + filepath + filename):
             print('Reproject cutout already exist:\t' + filename)
         else:
-            cutout_reproject_fxs.reproject2mastercutout(path=filepath, filename=filename, master_cutout='master_stack_{}_cutout.fits'.format(clustername))
+            cutout_reproject_fxs.cutout2mastercutout(path=filepath, filename=filename, master_cutout='master_stack_{}_cutout.fits'.format(clustername))
 
 
