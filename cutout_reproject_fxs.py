@@ -273,3 +273,82 @@ def cutout2mastercutout(path, filename, master_cutout):
     master.close()
     dat.close()
     datwt.close()
+
+
+# cutout function for science swarp frames #TEMP
+def science_cutout2mastercutout(path, filename, master_cutout):
+    '''
+    Function to cutout individual stacks using crval1, crval2 of master stack cutout image as center. path: directory of the individual stack image, \
+    filename: filename of individual stack image, master_cutout: filename of the master cutout image.
+    '''
+
+
+    filename = filename
+    # filename_nosuffix = filename.split('.')[0]
+    filename_nosuffix = filename.replace('.fits', '')
+    wtname = filename_nosuffix + '.wt.fits'
+    master_cutout = master_cutout
+
+    dat = fits.open(path + filename)
+    datwt = fits.open(path + wtname)
+    master = fits.open(path + master_cutout)
+
+    ra0 = master[0].header['CRVAL1']
+    dec0 = master[0].header['CRVAL2']
+    np = master[0].header['NAXIS1']
+
+    center_coord = SkyCoord(ra0, dec0, unit='deg')
+
+    dhdr = dat[0].header.copy()
+    wthdr = datwt[0].header.copy()
+
+    dhdr['CRVAL1'] = dat[0].header['CRVAL2']
+    dhdr['CRVAL2'] = dat[0].header['CRVAL1']
+    dhdr['CTYPE1'] = dat[0].header['CTYPE2']
+    dhdr['CTYPE2'] = dat[0].header['CTYPE1']
+    dhdr['CD1_1'] = dat[0].header['CD2_1']
+    dhdr['CD1_2'] = dat[0].header['CD2_2']
+    dhdr['CD2_1'] = dat[0].header['CD1_1']
+    dhdr['CD2_2'] = dat[0].header['CD1_2']
+
+    wthdr['CRVAL1'] = datwt[0].header['CRVAL2']
+    wthdr['CRVAL2'] = datwt[0].header['CRVAL1']
+    wthdr['CTYPE1'] = datwt[0].header['CTYPE2']
+    wthdr['CTYPE2'] = datwt[0].header['CTYPE1']
+    wthdr['CD1_1'] = datwt[0].header['CD2_1']
+    wthdr['CD1_2'] = datwt[0].header['CD2_2']
+    wthdr['CD2_1'] = datwt[0].header['CD1_1']
+    wthdr['CD2_2'] = datwt[0].header['CD1_2']
+
+    wcsd = WCS(dhdr)
+    wcswt = WCS(wthdr)
+
+    print('Making individual cutout image.....')
+    t0 = time.time()
+
+    cutout = Cutout2D(dat[0].data, center_coord, np, wcs=wcsd, mode='partial', fill_value=0.0)
+    cutoutwt = Cutout2D(datwt[0].data, center_coord, np, wcs=wcswt, mode='partial', fill_value=0.0)
+
+    # Update header
+    dhdr['NAXIS1'] = np
+    dhdr['NAXIS2'] = np
+    dhdr['CRPIX1'] = cutout.wcs.to_header()['CRPIX1']
+    dhdr['CRPIX2'] = cutout.wcs.to_header()['CRPIX2']
+
+    wthdr['NAXIS1'] = np
+    wthdr['NAXIS2'] = np
+    wthdr['CRPIX1'] = cutoutwt.wcs.to_header()['CRPIX1']
+    wthdr['CRPIX2'] = cutoutwt.wcs.to_header()['CRPIX2']
+
+    fits.writeto(path + 'cutout_' + filename, cutout.data, dhdr, overwrite=True)
+    fits.writeto(path + 'cutout_' + wtname, cutoutwt.data, wthdr, overwrite=True)
+    
+    print('Cutout image: cutout_{} and cutout_{} created.'.format(filename, wtname))
+    t1 = time.time()
+    print('Total time: ', (t1-t0))
+    print('\n')
+
+    master.close()
+    dat.close()
+    datwt.close()
+

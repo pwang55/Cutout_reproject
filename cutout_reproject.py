@@ -49,13 +49,17 @@ else:
     cutout_reproject_fxs.master_cutout(path=listpath, filename='master_stack_{}.fits'.format(clustername), np=np)
 
 
-# Reproject individual stack images to the master cutout image
+# Reproject individual stack or swarped science images to the master cutout image
 with open(listpathname) as f:
     for l in f:
         filename = l.strip()
-        if os.path.isfile('cutout_' + filepath + filename):
+        filetype = filename.split('_')[0]
+        if os.path.isfile(filepath + 'cutout_' + filename):
             print('Reproject cutout already exist:\t' + filename)
         else:
-            cutout_reproject_fxs.cutout2mastercutout(path=filepath, filename=filename, master_cutout='master_stack_{}_cutout.fits'.format(clustername))
+            if filetype == 'stack':
+                cutout_reproject_fxs.cutout2mastercutout(path=filepath, filename=filename, master_cutout='master_stack_{}_cutout.fits'.format(clustername))
+            elif filetype == 'science':
+                cutout_reproject_fxs.science_cutout2mastercutout(path=filepath, filename=filename, master_cutout='master_stack_{}_cutout.fits'.format(clustername))
 
 
